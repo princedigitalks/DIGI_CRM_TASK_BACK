@@ -2,9 +2,15 @@ const STAFF = require("../model/staff");
 const { encryptData, decryptData } = require("../utils/crypto");
 const jwt = require("jsonwebtoken");
 
-exports.createStaffService = async ({ fullName, email, phone, password }) => {
-  const encryptedPassword = encryptData(password);
-  const staffData = { fullName, email, phone, status: "active", password: encryptedPassword };
+exports.createStaffService = async (body) => {
+  const { fullName, email, phone, password, status, designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes } = body;
+  const encryptedPassword = password ? encryptData(password) : undefined;
+  const staffData = {
+    fullName, email, phone,
+    status: status || "active",
+    ...(encryptedPassword && { password: encryptedPassword }),
+    designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes,
+  };
   const staffDetails = await STAFF.create(staffData);
   return staffDetails;
 };
