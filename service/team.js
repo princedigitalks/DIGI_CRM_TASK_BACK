@@ -1,8 +1,8 @@
 const TEAM = require("../model/team");
 
 exports.createTeamService = async (body) => {
-  const { name, description, color, customerId, memberIds } = body;
-  const team = await TEAM.create({ name, description, color, customerId, memberIds: memberIds || [] });
+  const { name, description, color, memberIds } = body;
+  const team = await TEAM.create({ name, description, color, memberIds: memberIds || [] });
   return team;
 };
 
