@@ -7,8 +7,10 @@ const {
   fetchCustomerById,
   updateCustomer,
   deleteCustomer,
+  loginCustomer,
 } = require("../controller/customer");
 
+router.post("/login", loginCustomer);
 router.post("/create",  authMiddleware, createCustomer);
 router.get("/",         authMiddleware, fetchAllCustomers);
 router.get("/:id",      authMiddleware, fetchCustomerById);

@@ -4,7 +4,18 @@ const {
   fetchCustomerByIdService,
   updateCustomerService,
   deleteCustomerService,
+  loginCustomerService,
 } = require("../service/customer");
+
+exports.loginCustomer = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { customer, token } = await loginCustomerService({ email, password });
+    return res.status(200).json({ status: "Success", message: "Login successful", data: customer, token });
+  } catch (error) {
+    return res.status(401).json({ status: "Fail", message: error.message });
+  }
+};
 
 exports.createCustomer = async (req, res) => {
   try {
