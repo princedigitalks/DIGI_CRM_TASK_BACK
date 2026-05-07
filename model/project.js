@@ -9,6 +9,8 @@ const ProjectSchema = new mongoose.Schema(
     assignedMemberIds: [{ type: String }],
     status: { type: String, default: "Active" },
     dueDate: { type: String, default: "" },
+    budget: { type: String, default: "" },
+    currency: { type: String, default: "INR ₹" },
     color: { type: String, default: "bg-indigo-500" },
   },
   { timestamps: true }

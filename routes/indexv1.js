@@ -8,5 +8,6 @@ router.use("/teams", require("./team"));
 router.use("/customers", require("./customer"));
 router.use("/projects", require("./project"));
 router.use("/statuses", require("./status"));
+router.use("/tasks", require("./task"));
 
 module.exports = router;
