@@ -6,6 +6,7 @@ const TeamSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     color:       { type: String, default: "bg-blue-500" },
     memberIds:   { type: [String], default: [] },
+    customerId:  { type: String, default: "" },
   },
   { timestamps: true }
 );
