@@ -3,12 +3,14 @@ const { encryptData, decryptData } = require("../utils/crypto");
 const jwt = require("jsonwebtoken");
 
 exports.createStaffService = async (body) => {
-  const { fullName, email, phone, password, status, designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes } = body;
+  const { fullName, email, phone, password, googlePassword, status, designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes } = body;
   const encryptedPassword = password ? encryptData(password) : undefined;
+  const encryptedGooglePassword = googlePassword ? encryptData(googlePassword) : undefined;
   const staffData = {
     fullName, email, phone,
     status: status || "active",
     ...(encryptedPassword && { password: encryptedPassword }),
+    ...(encryptedGooglePassword && { googlePassword: encryptedGooglePassword }),
     designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes,
   };
   const staffDetails = await STAFF.create(staffData);
@@ -51,6 +53,7 @@ exports.staffUpdateService = async (staffId, body) => {
   const oldStaff = await STAFF.findById(staffId);
   if (!oldStaff) throw new Error("Staff not found");
   if (body.password) body.password = encryptData(body.password);
+  if (body.googlePassword) body.googlePassword = encryptData(body.googlePassword);
   const updatedStaff = await STAFF.findByIdAndUpdate(staffId, body, { new: true });
   return updatedStaff;
 };
