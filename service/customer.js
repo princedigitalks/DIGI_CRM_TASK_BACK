@@ -44,7 +44,6 @@ exports.updateCustomerService = async (id, body) => {
 };
 
 const jwt = require("jsonwebtoken");
-const { encryptData } = require("../utils/crypto");
 
 exports.loginCustomerService = async ({ email, password }) => {
   const customer = await Customer.findOne({ email });
