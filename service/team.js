@@ -68,3 +68,7 @@ exports.deleteTeamService = async (teamId) => {
   if (!team) throw new Error("Team not found");
   await TEAM.findByIdAndDelete(teamId);
 };
+
+exports.fetchTeamsDropdownService = async () => {
+  return await TEAM.find({}).select("name color description").sort({ name: 1 });
+};
