@@ -14,7 +14,10 @@ exports.createStaffService = async (body) => {
     designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes,
   };
   const staffDetails = await STAFF.create(staffData);
-  return staffDetails;
+  const s = staffDetails.toObject();
+  if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
+  if (s.password) s.password = decryptData(s.password);
+  return s;
 };
 
 exports.loginStaffService = async ({ email, password }) => {
@@ -24,8 +27,12 @@ exports.loginStaffService = async ({ email, password }) => {
   const decryptedPassword = decryptData(staffverify.password);
   if (String(decryptedPassword) !== password) throw new Error("Invalid password");
 
+  const s = staffverify.toObject();
+  if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
+  if (s.password) s.password = decryptData(s.password);
+
   const token = jwt.sign({ id: staffverify._id }, process.env.JWT_SECRET_KEY);
-  return { staff: staffverify, token };
+  return { staff: s, token };
 };
 
 exports.fetchAllStaffsService = async ({ page, limit, search }) => {
@@ -40,22 +47,44 @@ exports.fetchAllStaffsService = async ({ page, limit, search }) => {
   };
   const totalStaff = await STAFF.countDocuments(query);
   const staffsData = await STAFF.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
-  return { totalStaff, staffsData, page, limit };
+  const decryptedStaffs = staffsData.map(staff => {
+    const s = staff.toObject();
+    if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
+    if (s.password) s.password = decryptData(s.password);
+    return s;
+  });
+  return { totalStaff, staffsData: decryptedStaffs, page, limit };
 };
 
 exports.fetchStaffByIdService = async (staffId) => {
   const staffData = await STAFF.findById(staffId);
   if (!staffData) throw new Error("Staff not found");
-  return staffData;
+  const s = staffData.toObject();
+  if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
+  if (s.password) s.password = decryptData(s.password);
+  return s;
 };
 
 exports.staffUpdateService = async (staffId, body) => {
   const oldStaff = await STAFF.findById(staffId);
   if (!oldStaff) throw new Error("Staff not found");
-  if (body.password) body.password = encryptData(body.password);
-  if (body.googlePassword) body.googlePassword = encryptData(body.googlePassword);
+  if (body.password) {
+    body.password = encryptData(body.password);
+  } else {
+    delete body.password;
+  }
+
+  if (body.googlePassword) {
+    body.googlePassword = encryptData(body.googlePassword);
+  } else {
+    delete body.googlePassword;
+  }
+
   const updatedStaff = await STAFF.findByIdAndUpdate(staffId, body, { new: true });
-  return updatedStaff;
+  const s = updatedStaff.toObject();
+  if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
+  if (s.password) s.password = decryptData(s.password);
+  return s;
 };
 
 exports.staffDeleteService = async (staffId) => {
