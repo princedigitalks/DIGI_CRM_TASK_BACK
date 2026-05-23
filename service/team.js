@@ -2,8 +2,8 @@ const TEAM = require("../model/team");
 const STAFF = require("../model/staff");
 
 exports.createTeamService = async (body) => {
-  const { name, description, color, memberIds } = body;
-  const team = await TEAM.create({ name, description, color, memberIds: memberIds || [] });
+  const { name, description, color, memberIds, customerId } = body;
+  const team = await TEAM.create({ name, description, color, memberIds: memberIds || [], customerId: customerId || "" });
   // Clear teamId for these members in case they were in other teams, and set to this one
   if (memberIds && memberIds.length > 0) {
     await STAFF.updateMany({ _id: { $in: memberIds } }, { teamId: team._id });
