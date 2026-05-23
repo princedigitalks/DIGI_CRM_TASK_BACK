@@ -17,8 +17,16 @@ exports.createRole = async (req, res) => {
 
 exports.fetchAllRoles = async (req, res) => {
   try {
-    const roles = await fetchAllRolesService();
-    return res.status(200).json({ status: "Success", message: "Roles fetched successfully", data: roles });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const { totalRoles, rolesData } = await fetchAllRolesService({ page, limit, search });
+    return res.status(200).json({
+      status: "Success",
+      message: "Roles fetched successfully",
+      pagination: { totalRecords: totalRoles, currentPage: page, totalPages: Math.ceil(totalRoles / limit), limit },
+      data: rolesData,
+    });
   } catch (error) {
     return res.status(500).json({ status: "Fail", message: error.message });
   }

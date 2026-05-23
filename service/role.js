@@ -7,9 +7,17 @@ exports.createRoleService = async ({ name, description, color, permissions }) =>
   return role;
 };
 
-exports.fetchAllRolesService = async () => {
-  const roles = await Role.find().sort({ createdAt: -1 });
-  return roles;
+exports.fetchAllRolesService = async ({ page, limit, search }) => {
+  const skip = (page - 1) * limit;
+  const query = {
+    $or: [
+      { name: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ],
+  };
+  const totalRoles = await Role.countDocuments(query);
+  const rolesData = await Role.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
+  return { totalRoles, rolesData };
 };
 
 exports.fetchRoleByIdService = async (roleId) => {

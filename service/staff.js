@@ -1,4 +1,5 @@
 const STAFF = require("../model/staff");
+const TEAM = require("../model/team");
 const { encryptData, decryptData } = require("../utils/crypto");
 const jwt = require("jsonwebtoken");
 
@@ -14,6 +15,11 @@ exports.createStaffService = async (body) => {
     designation, department, role, teamId, color, googleId, salary, currency, joinDate, address, city, country, notes,
   };
   const staffDetails = await STAFF.create(staffData);
+
+  if (teamId) {
+    await TEAM.findByIdAndUpdate(teamId, { $addToSet: { memberIds: staffDetails._id } });
+  }
+
   const s = staffDetails.toObject();
   if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
   if (s.password) s.password = decryptData(s.password);
@@ -81,6 +87,19 @@ exports.staffUpdateService = async (staffId, body) => {
   }
 
   const updatedStaff = await STAFF.findByIdAndUpdate(staffId, body, { new: true });
+
+  // Sync team memberIds
+  if (body.teamId !== undefined) {
+    // If team changed, remove from old team
+    if (oldStaff.teamId && oldStaff.teamId !== body.teamId) {
+      await TEAM.findByIdAndUpdate(oldStaff.teamId, { $pull: { memberIds: staffId } });
+    }
+    // Add to new team
+    if (body.teamId) {
+      await TEAM.findByIdAndUpdate(body.teamId, { $addToSet: { memberIds: staffId } });
+    }
+  }
+
   const s = updatedStaff.toObject();
   if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
   if (s.password) s.password = decryptData(s.password);
