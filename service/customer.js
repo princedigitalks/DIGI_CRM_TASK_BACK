@@ -1,5 +1,5 @@
 const Customer = require("../model/customer");
-const { encryptData } = require("../utils/crypto");
+const { encryptData, decryptData } = require("../utils/crypto");
 
 exports.createCustomerService = async (body) => {
   if (body.password) {
@@ -13,23 +13,38 @@ exports.fetchAllCustomersService = async ({ page, limit, search }) => {
   const skip = (page - 1) * limit;
   const query = search
     ? {
-        $or: [
-          { name:    { $regex: search, $options: "i" } },
-          { company: { $regex: search, $options: "i" } },
-          { email:   { $regex: search, $options: "i" } },
-          { industry:{ $regex: search, $options: "i" } },
-        ],
-      }
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { industry: { $regex: search, $options: "i" } },
+        { city: { $regex: search, $options: "i" } },
+        { country: { $regex: search, $options: "i" } },
+      ],
+    }
     : {};
   const total = await Customer.countDocuments(query);
-  const data  = await Customer.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
-  return { total, data };
+  const data = await Customer.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
+
+  const decryptedData = data.map(customer => {
+    const obj = customer.toObject();
+    if (obj.password) {
+      obj.password = decryptData(obj.password);
+    }
+    return obj;
+  });
+
+  return { total, data: decryptedData };
 };
 
 exports.fetchCustomerByIdService = async (id) => {
   const customer = await Customer.findById(id);
   if (!customer) throw new Error("Customer not found");
-  return customer;
+  const obj = customer.toObject();
+  if (obj.password) {
+    obj.password = decryptData(obj.password);
+  }
+  return obj;
 };
 
 exports.updateCustomerService = async (id, body) => {
@@ -48,7 +63,7 @@ const jwt = require("jsonwebtoken");
 exports.loginCustomerService = async ({ email, password }) => {
   const customer = await Customer.findOne({ email });
   if (!customer) throw new Error("Customer not found");
-  
+
   const encryptedPassword = encryptData(password);
   if (customer.password !== encryptedPassword) {
     throw new Error("Invalid password");
