@@ -4,6 +4,7 @@ const {
   fetchTeamByIdService,
   updateTeamService,
   deleteTeamService,
+  fetchTeamsDropdownService,
 } = require("../service/team");
 
 exports.createTeam = async (req, res) => {
@@ -17,8 +18,8 @@ exports.createTeam = async (req, res) => {
 
 exports.fetchAllTeams = async (req, res) => {
   try {
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
     const { totalTeams, teamsData } = await fetchAllTeamsService({ page, limit, search });
     return res.status(200).json({
@@ -56,5 +57,14 @@ exports.deleteTeam = async (req, res) => {
     return res.status(200).json({ status: "Success", message: "Team deleted successfully" });
   } catch (error) {
     return res.status(404).json({ status: "Fail", message: error.message });
+  }
+};
+
+exports.fetchTeamsDropdown = async (req, res) => {
+  try {
+    const teams = await fetchTeamsDropdownService();
+    return res.status(200).json({ status: "Success", message: "Teams dropdown fetched", data: teams });
+  } catch (error) {
+    return res.status(500).json({ status: "Fail", message: error.message });
   }
 };

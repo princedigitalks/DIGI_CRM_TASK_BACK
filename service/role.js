@@ -38,3 +38,7 @@ exports.deleteRoleService = async (roleId) => {
   if (!role) throw new Error("Role not found");
   await Role.findByIdAndDelete(roleId);
 };
+
+exports.fetchRolesDropdownService = async () => {
+  return await Role.find({}).select("name color permissions").sort({ name: 1 });
+};

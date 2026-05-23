@@ -27,15 +27,16 @@ exports.createStaffService = async (body) => {
 };
 
 exports.loginStaffService = async ({ email, password }) => {
-  const staffverify = await STAFF.findOne({ email });
+  const staffverify = await STAFF.findOne({ email }).select("+password +googlePassword");
   if (!staffverify) throw new Error("Invalid Email or password");
 
   const decryptedPassword = decryptData(staffverify.password);
   if (String(decryptedPassword) !== password) throw new Error("Invalid password");
 
   const s = staffverify.toObject();
+  delete s.password;
   if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
-  if (s.password) s.password = decryptData(s.password);
+  s.name = s.fullName;
 
   const token = jwt.sign({ id: staffverify._id }, process.env.JWT_SECRET_KEY);
   return { staff: s, token };
@@ -110,4 +111,8 @@ exports.staffDeleteService = async (staffId) => {
   const oldStaff = await STAFF.findById(staffId);
   if (!oldStaff) throw new Error("Staff not found");
   await STAFF.findByIdAndDelete(staffId);
+};
+
+exports.fetchStaffDropdownService = async () => {
+  return await STAFF.find({}).select("fullName initials color status").sort({ fullName: 1 });
 };

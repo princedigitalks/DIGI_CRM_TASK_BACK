@@ -5,6 +5,7 @@ const {
   fetchStaffByIdService,
   staffUpdateService,
   staffDeleteService,
+  fetchStaffDropdownService,
 } = require("../service/staff");
 
 exports.createStaff = async (req, res) => {
@@ -75,5 +76,14 @@ exports.staffDelete = async (req, res) => {
     return res.status(200).json({ status: "Success", message: "Staff deleted successfully" });
   } catch (error) {
     return res.status(404).json({ status: "Fail", message: error.message });
+  }
+};
+
+exports.fetchStaffDropdown = async (req, res) => {
+  try {
+    const staffs = await fetchStaffDropdownService();
+    return res.status(200).json({ status: "Success", message: "Staff dropdown fetched", data: staffs });
+  } catch (error) {
+    return res.status(500).json({ status: "Fail", message: error.message });
   }
 };

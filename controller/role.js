@@ -4,6 +4,7 @@ const {
   fetchRoleByIdService,
   updateRoleService,
   deleteRoleService,
+  fetchRolesDropdownService,
 } = require("../service/role");
 
 exports.createRole = async (req, res) => {
@@ -56,5 +57,14 @@ exports.deleteRole = async (req, res) => {
     return res.status(200).json({ status: "Success", message: "Role deleted successfully" });
   } catch (error) {
     return res.status(404).json({ status: "Fail", message: error.message });
+  }
+};
+
+exports.fetchRolesDropdown = async (req, res) => {
+  try {
+    const roles = await fetchRolesDropdownService();
+    return res.status(200).json({ status: "Success", message: "Roles dropdown fetched", data: roles });
+  } catch (error) {
+    return res.status(500).json({ status: "Fail", message: error.message });
   }
 };

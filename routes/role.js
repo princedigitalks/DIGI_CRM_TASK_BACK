@@ -7,10 +7,12 @@ const {
   fetchRoleById,
   updateRole,
   deleteRole,
+  fetchRolesDropdown,
 } = require("../controller/role");
 
 router.post("/create", authMiddleware, createRole);
 router.get("/", authMiddleware, fetchAllRoles);
+router.get("/dropdown", authMiddleware, fetchRolesDropdown);
 router.get("/:id", authMiddleware, fetchRoleById);
 router.put("/:id", authMiddleware, updateRole);
 router.delete("/:id", authMiddleware, deleteRole);
