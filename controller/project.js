@@ -4,6 +4,8 @@ const {
   fetchProjectByIdService,
   updateProjectService,
   deleteProjectService,
+  fetchCustomersDropdownService,
+  fetchStaffByTeamService,
 } = require("../service/project");
 
 exports.createProject = async (req, res) => {
@@ -53,5 +55,23 @@ exports.deleteProject = async (req, res) => {
     res.status(200).json({ success: true, message: "Project deleted" });
   } catch (err) {
     res.status(404).json({ success: false, message: err.message });
+  }
+};
+
+exports.getCustomersDropdown = async (req, res) => {
+  try {
+    const customers = await fetchCustomersDropdownService();
+    res.status(200).json({ success: true, data: customers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getStaffByTeam = async (req, res) => {
+  try {
+    const staff = await fetchStaffByTeamService(req.params.teamId);
+    res.status(200).json({ success: true, data: staff });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

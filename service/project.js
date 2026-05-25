@@ -1,4 +1,6 @@
 const Project = require("../model/project");
+const Customer = require("../model/customer");
+const Staff = require("../model/staff");
 
 exports.createProjectService = async (body) => {
   const project = await Project.create(body);
@@ -35,4 +37,12 @@ exports.updateProjectService = async (id, body) => {
 exports.deleteProjectService = async (id) => {
   const project = await Project.findByIdAndDelete(id);
   if (!project) throw new Error("Project not found");
+};
+
+exports.fetchCustomersDropdownService = async () => {
+  return await Customer.find({}).select("name company color initials status").sort({ company: 1 });
+};
+
+exports.fetchStaffByTeamService = async (teamId) => {
+  return await Staff.find({ teamId }).select("fullName color status designation").sort({ fullName: 1 });
 };
