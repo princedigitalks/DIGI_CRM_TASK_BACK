@@ -9,7 +9,7 @@ const TaskSchema = new mongoose.Schema(
     status: { type: String, default: "todo" }, // backlog, todo, in-progress, review, done
     priority: { type: String, default: "Medium" }, // Low, Medium, High
     dueDate: { type: String, default: "" },
-    labels: [{ type: String }],
+    color: { type: String, default: "bg-indigo-500" },
     order: { type: Number, default: 0 },
     dueTime: { type: String, default: "" },
     startTime: { type: String, default: "" },

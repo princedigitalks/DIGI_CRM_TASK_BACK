@@ -6,7 +6,10 @@ exports.createTaskService = async (body) => {
   return task;
 };
 
-exports.fetchAllTasksService = async (query = {}, user, role) => {
+exports.fetchAllTasksService = async (params = {}, user, role) => {
+  const { page = 1, limit = 10, ...query } = params;
+  const skip = (page - 1) * limit;
+
   // Data Isolation: If user is a customer, only show tasks for their projects
   if (role === "Customer") {
     const customerProjects = await Project.find({ customerId: user._id.toString() }).select("_id");
@@ -14,9 +17,13 @@ exports.fetchAllTasksService = async (query = {}, user, role) => {
     query.projectId = { $in: projectIds };
   }
 
-  // Can filter by projectId, assigneeId, status etc
-  const tasks = await TASK.find(query).sort({ order: 1, createdAt: -1 });
-  return tasks;
+  const total = await TASK.countDocuments(query);
+  const tasks = await TASK.find(query)
+    .sort({ order: 1, createdAt: -1 })
+    .skip(Number(skip))
+    .limit(Number(limit));
+
+  return { tasks, total };
 };
 
 
