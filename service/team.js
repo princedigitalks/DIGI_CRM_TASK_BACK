@@ -14,14 +14,25 @@ exports.createTeamService = async (body) => {
   return t;
 };
 
-exports.fetchAllTeamsService = async ({ page, limit, search }) => {
+exports.fetchAllTeamsService = async ({ page, limit, search, user, role, permissions }) => {
   const skip = (page - 1) * limit;
-  const query = {
+  let query = {
     $or: [
       { name: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
     ],
   };
+
+  if (role !== "Customer") {
+    const perms = permissions?.Teams || {};
+    if (!perms.read_all) {
+      if (perms.read_own && user.teamId) {
+        query._id = user.teamId;
+      } else {
+        return { totalTeams: 0, teamsData: [] };
+      }
+    }
+  }
   const totalTeams = await TEAM.countDocuments(query);
   const teamsData = await TEAM.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
 

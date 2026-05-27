@@ -6,7 +6,7 @@ exports.createTaskService = async (body) => {
   return task;
 };
 
-exports.fetchAllTasksService = async (params = {}, user, role) => {
+exports.fetchAllTasksService = async (params = {}, user, role, permissions) => {
   const { page = 1, limit = 10, ...query } = params;
   const skip = (page - 1) * limit;
 
@@ -15,6 +15,18 @@ exports.fetchAllTasksService = async (params = {}, user, role) => {
     const customerProjects = await Project.find({ customerId: user._id.toString() }).select("_id");
     const projectIds = customerProjects.map(p => p._id.toString());
     query.projectId = { $in: projectIds };
+  } else {
+    // Staff permission check
+    const perms = permissions?.Tasks || {};
+    if (!perms.read_all) {
+      if (perms.read_own) {
+        // Only show tasks where user is assignee
+        query.assigneeIds = user._id.toString();
+      } else {
+        // No permission to read any
+        return { tasks: [], total: 0 };
+      }
+    }
   }
 
   const total = await TASK.countDocuments(query);

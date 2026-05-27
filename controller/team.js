@@ -21,7 +21,7 @@ exports.fetchAllTeams = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
-    const { totalTeams, teamsData } = await fetchAllTeamsService({ page, limit, search });
+    const { totalTeams, teamsData } = await fetchAllTeamsService({ page, limit, search, user: req.user, role: req.role, permissions: req.permissions });
     return res.status(200).json({
       status: "Success",
       message: "Teams fetched successfully",

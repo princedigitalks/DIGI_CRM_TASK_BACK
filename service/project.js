@@ -7,7 +7,7 @@ exports.createProjectService = async (body) => {
   return project;
 };
 
-exports.fetchAllProjectsService = async ({ page, limit, search, user, role }) => {
+exports.fetchAllProjectsService = async ({ page, limit, search, user, role, permissions }) => {
   const skip = (page - 1) * limit;
   let query = search
     ? {
@@ -21,6 +21,18 @@ exports.fetchAllProjectsService = async ({ page, limit, search, user, role }) =>
   // Data Isolation: If user is a customer, only show their projects
   if (role === "Customer") {
     query.customerId = user._id.toString();
+  } else {
+    // Staff permission check
+    const perms = permissions?.Projects || {};
+    if (!perms.read_all) {
+      if (perms.read_own) {
+        // Only show projects where user is assigned
+        query.assignedMemberIds = user._id.toString();
+      } else {
+        // No permission to read any
+        return { total: 0, data: [] };
+      }
+    }
   }
 
   const total = await Project.countDocuments(query);

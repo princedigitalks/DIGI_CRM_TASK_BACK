@@ -10,11 +10,13 @@ const {
   fetchTeamsDropdown,
 } = require("../controller/team");
 
-router.post("/create", authMiddleware, createTeam);
-router.get("/", authMiddleware, fetchAllTeams);
+const { checkPermission } = require("../middleware/permission");
+
+router.post("/create", authMiddleware, checkPermission('Teams', 'create'), createTeam);
+router.get("/", authMiddleware, checkPermission('Teams', 'read'), fetchAllTeams);
 router.get("/dropdown", authMiddleware, fetchTeamsDropdown);
-router.get("/:id", authMiddleware, fetchTeamById);
-router.put("/:id", authMiddleware, updateTeam);
-router.delete("/:id", authMiddleware, deleteTeam);
+router.get("/:id", authMiddleware, checkPermission('Teams', 'read'), fetchTeamById);
+router.put("/:id", authMiddleware, checkPermission('Teams', 'update'), updateTeam);
+router.delete("/:id", authMiddleware, checkPermission('Teams', 'delete'), deleteTeam);
 
 module.exports = router;

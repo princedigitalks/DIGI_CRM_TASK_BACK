@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const PANELS = ["Dashboard", "Staff", "Customers", "Projects", "Tasks", "Teams", "Reports", "Roles", "Archive", "Support"];
+const PANELS = ["Dashboard", "Staff", "Customers", "Projects", "Tasks", "Teams", "Reports", "Roles", "Archive", "Support", "Finance"];
 const ACTIONS = ["create", "read_all", "read_own", "update", "delete"];
 
 const permissionSchema = {};

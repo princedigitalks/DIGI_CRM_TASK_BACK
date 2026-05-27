@@ -28,10 +28,10 @@ exports.createCustomer = async (req, res) => {
 
 exports.fetchAllCustomers = async (req, res) => {
   try {
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 100;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
     const search = req.query.search || "";
-    const { total, data } = await fetchAllCustomersService({ page, limit, search });
+    const { total, data } = await fetchAllCustomersService({ page, limit, search, permissions: req.permissions });
     return res.status(200).json({
       status: "Success",
       message: "Customers fetched successfully",
@@ -45,7 +45,7 @@ exports.fetchAllCustomers = async (req, res) => {
 
 exports.fetchCustomerById = async (req, res) => {
   try {
-    const data = await fetchCustomerByIdService(req.params.id);
+    const data = await fetchCustomerByIdService(req.params.id, req.permissions);
     return res.status(200).json({ status: "Success", message: "Customer fetched successfully", data });
   } catch (error) {
     return res.status(404).json({ status: "Fail", message: error.message });

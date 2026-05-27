@@ -23,7 +23,23 @@ async function authMiddleware(req, res, next) {
       userVerify = await STAFF.findById(decoded.id);
       if (userVerify) {
         req.user = userVerify;
-        req.role = decoded.role || "Staff"; // Use role from token or default to Staff
+        req.role = decoded.role || userVerify.role || "Staff"; // Prefer role from token, then user doc
+
+        // Fetch permissions for the role
+        const ROLE = require("../model/role");
+        const roleData = await ROLE.findOne({ name: req.role });
+        let permissions = roleData ? roleData.permissions : {};
+
+        // Special handling for Admin: ensure full access to all panels
+        if (req.role === "Admin") {
+          const PANELS = ["Dashboard", "Staff", "Customers", "Projects", "Tasks", "Teams", "Reports", "Roles", "Archive", "Support", "Finance"];
+          const ACTIONS = ["create", "read_all", "read_own", "update", "delete"];
+          PANELS.forEach(p => {
+            permissions[p] = {};
+            ACTIONS.forEach(a => permissions[p][a] = true);
+          });
+        }
+        req.permissions = permissions;
       }
     }
 

@@ -10,11 +10,13 @@ const {
   fetchRolesDropdown,
 } = require("../controller/role");
 
-router.post("/create", authMiddleware, createRole);
-router.get("/", authMiddleware, fetchAllRoles);
+const { checkPermission } = require("../middleware/permission");
+
+router.post("/create", authMiddleware, checkPermission('Roles', 'create'), createRole);
+router.get("/", authMiddleware, checkPermission('Roles', 'read'), fetchAllRoles);
 router.get("/dropdown", authMiddleware, fetchRolesDropdown);
-router.get("/:id", authMiddleware, fetchRoleById);
-router.put("/:id", authMiddleware, updateRole);
-router.delete("/:id", authMiddleware, deleteRole);
+router.get("/:id", authMiddleware, checkPermission('Roles', 'read'), fetchRoleById);
+router.put("/:id", authMiddleware, checkPermission('Roles', 'update'), updateRole);
+router.delete("/:id", authMiddleware, checkPermission('Roles', 'delete'), deleteRole);
 
 module.exports = router;

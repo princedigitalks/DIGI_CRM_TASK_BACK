@@ -26,6 +26,7 @@ exports.getAllProjects = async (req, res) => {
       search,
       user: req.user,
       role: req.role,
+      permissions: req.permissions,
     });
 
     res.status(200).json({ success: true, ...result });

@@ -9,7 +9,14 @@ exports.createCustomerService = async (body) => {
   return customer;
 };
 
-exports.fetchAllCustomersService = async ({ page, limit, search }) => {
+exports.fetchAllCustomersService = async ({ page, limit, search, permissions }) => {
+  const perms = permissions?.Customers || {};
+  if (!perms.read_all && !perms.read_own) {
+    return { total: 0, data: [] };
+  }
+
+  const hasFinanceRead = permissions?.Finance?.read_all || permissions?.Finance?.read_own;
+
   const skip = (page - 1) * limit;
   const query = search
     ? {
@@ -31,21 +38,33 @@ exports.fetchAllCustomersService = async ({ page, limit, search }) => {
     if (obj.password) {
       obj.password = decryptData(obj.password);
     }
+    if (!hasFinanceRead) {
+      delete obj.budget;
+      delete obj.currency;
+    }
     return obj;
   });
+
 
   return { total, data: decryptedData };
 };
 
-exports.fetchCustomerByIdService = async (id) => {
+exports.fetchCustomerByIdService = async (id, permissions) => {
+  const hasFinanceRead = permissions?.Finance?.read_all || permissions?.Finance?.read_own;
+
   const customer = await Customer.findById(id);
   if (!customer) throw new Error("Customer not found");
   const obj = customer.toObject();
   if (obj.password) {
     obj.password = decryptData(obj.password);
   }
+  if (!hasFinanceRead) {
+    delete obj.budget;
+    delete obj.currency;
+  }
   return obj;
 };
+
 
 exports.updateCustomerService = async (id, body) => {
   if (body.password) {

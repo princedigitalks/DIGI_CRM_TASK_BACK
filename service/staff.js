@@ -38,13 +38,37 @@ exports.loginStaffService = async ({ email, password }) => {
   if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
   s.name = s.fullName;
 
-  const token = jwt.sign({ id: staffverify._id }, process.env.JWT_SECRET_KEY);
+  const ROLE = require("../model/role");
+  const roleData = await ROLE.findOne({ name: s.role });
+  let permissions = roleData ? roleData.permissions : {};
+
+  // Special handling for Admin: ensure full access to all panels
+  if (s.role === "Admin") {
+    const PANELS = ["Dashboard", "Staff", "Customers", "Projects", "Tasks", "Teams", "Reports", "Roles", "Archive", "Support", "Finance"];
+    const ACTIONS = ["create", "read_all", "read_own", "update", "delete"];
+    PANELS.forEach(p => {
+      permissions[p] = {};
+      ACTIONS.forEach(a => permissions[p][a] = true);
+    });
+  }
+  s.permissions = permissions;
+
+  const hasFinanceRead = permissions?.Finance?.read_all || permissions?.Finance?.read_own;
+  if (!hasFinanceRead) {
+    delete s.salary;
+    delete s.currency;
+    delete s.bankName;
+    delete s.accountNumber;
+    delete s.ifscCode;
+  }
+
+  const token = jwt.sign({ id: staffverify._id, role: s.role }, process.env.JWT_SECRET_KEY);
   return { staff: s, token };
 };
 
-exports.fetchAllStaffsService = async ({ page, limit, search }) => {
+exports.fetchAllStaffsService = async ({ page, limit, search, user, permissions }) => {
   const skip = (page - 1) * limit;
-  const query = {
+  let query = {
     $or: [
       { fullName: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
@@ -52,23 +76,52 @@ exports.fetchAllStaffsService = async ({ page, limit, search }) => {
       { status: { $regex: search, $options: "i" } },
     ],
   };
+
+  const perms = permissions?.Staff || {};
+  if (!perms.read_all) {
+    if (perms.read_own) {
+      query._id = user._id;
+    } else {
+      return { totalStaff: 0, staffsData: [] };
+    }
+  }
   const totalStaff = await STAFF.countDocuments(query);
   const staffsData = await STAFF.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
+
+  const hasFinanceRead = permissions?.Finance?.read_all || permissions?.Finance?.read_own;
+
   const decryptedStaffs = staffsData.map(staff => {
     const s = staff.toObject();
     if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
     if (s.password) s.password = decryptData(s.password);
+    if (!hasFinanceRead) {
+      delete s.salary;
+      delete s.currency;
+      delete s.bankName;
+      delete s.accountNumber;
+      delete s.ifscCode;
+    }
     return s;
   });
+
   return { totalStaff, staffsData: decryptedStaffs, page, limit };
 };
 
-exports.fetchStaffByIdService = async (staffId) => {
+exports.fetchStaffByIdService = async (staffId, permissions) => {
+  const hasFinanceRead = permissions?.Finance?.read_all || permissions?.Finance?.read_own;
+
   const staffData = await STAFF.findById(staffId);
   if (!staffData) throw new Error("Staff not found");
   const s = staffData.toObject();
   if (s.googlePassword) s.googlePassword = decryptData(s.googlePassword);
   if (s.password) s.password = decryptData(s.password);
+  if (!hasFinanceRead) {
+    delete s.salary;
+    delete s.currency;
+    delete s.bankName;
+    delete s.accountNumber;
+    delete s.ifscCode;
+  }
   return s;
 };
 

@@ -10,12 +10,15 @@ const {
   getStaffByTeam,
 } = require("../controller/project");
 
-router.post("/", createProject);
-router.get("/", getAllProjects);
-router.get("/customers-dropdown", getCustomersDropdown);
-router.get("/staff-by-team/:teamId", getStaffByTeam);
-router.get("/:id", getProjectById);
-router.put("/:id", updateProject);
-router.delete("/:id", deleteProject);
+const authMiddleware = require("../middleware/auth");
+const { checkPermission } = require("../middleware/permission");
+
+router.post("/", authMiddleware, checkPermission('Projects', 'create'), createProject);
+router.get("/", authMiddleware, checkPermission('Projects', 'read'), getAllProjects);
+router.get("/customers-dropdown", authMiddleware, getCustomersDropdown);
+router.get("/staff-by-team/:teamId", authMiddleware, getStaffByTeam);
+router.get("/:id", authMiddleware, checkPermission('Projects', 'read'), getProjectById);
+router.put("/:id", authMiddleware, checkPermission('Projects', 'update'), updateProject);
+router.delete("/:id", authMiddleware, checkPermission('Projects', 'delete'), deleteProject);
 
 module.exports = router;
