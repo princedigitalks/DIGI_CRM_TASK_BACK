@@ -6,7 +6,10 @@ const {
   fetchTaskById,
   updateTask,
   deleteTask,
-  reorderTasks
+  reorderTasks,
+  addComment,
+  addAttachment,
+  toggleTimer
 } = require("../controller/task");
 
 router.post("/", createTask);
@@ -15,5 +18,8 @@ router.get("/:id", fetchTaskById);
 router.put("/:id", updateTask);
 router.delete("/:id", deleteTask);
 router.post("/reorder", reorderTasks);
+router.post("/:id/comments", addComment);
+router.post("/:id/attachments", addAttachment);
+router.post("/:id/timer", toggleTimer);
 
 module.exports = router;

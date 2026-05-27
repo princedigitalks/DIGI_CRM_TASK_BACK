@@ -52,3 +52,41 @@ exports.reorderTasksService = async (reorderedIds) => {
   await Promise.all(updates);
   return { status: "Success", message: "Tasks reordered" };
 };
+
+exports.addCommentService = async (id, comment) => {
+  const task = await TASK.findByIdAndUpdate(
+    id,
+    { $push: { comments: comment } },
+    { new: true }
+  );
+  return task;
+};
+
+exports.addAttachmentService = async (id, attachment) => {
+  const task = await TASK.findByIdAndUpdate(
+    id,
+    { $push: { attachments: attachment } },
+    { new: true }
+  );
+  return task;
+};
+
+exports.toggleTimerService = async (id) => {
+  const task = await TASK.findById(id);
+  if (!task) throw new Error("Task not found");
+
+  if (task.timerRunning) {
+    // Stop
+    const elapsed = Math.floor((Date.now() - task.timerStartedAt) / 1000);
+    task.actualSeconds += elapsed;
+    task.timerRunning = false;
+    task.timerStartedAt = null;
+  } else {
+    // Start
+    task.timerRunning = true;
+    task.timerStartedAt = Date.now();
+  }
+
+  await task.save();
+  return task;
+};

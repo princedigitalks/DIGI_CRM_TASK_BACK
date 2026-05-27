@@ -19,6 +19,12 @@ const TaskSchema = new mongoose.Schema(
     timerRunning: { type: Boolean, default: false },
     timerStartedAt: { type: Number, default: null },
     completed: { type: Boolean, default: false },
+    subtasks: [
+      {
+        text: { type: String, required: true },
+        completed: { type: Boolean, default: false }
+      }
+    ],
     comments: [
       {
         text: { type: String, required: true },
@@ -27,6 +33,15 @@ const TaskSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+    attachments: [
+      {
+        name: { type: String, required: true },
+        url: { type: String, required: true },
+        type: { type: String },
+        size: { type: Number },
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );
