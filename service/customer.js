@@ -61,22 +61,27 @@ exports.updateCustomerService = async (id, body) => {
 const jwt = require("jsonwebtoken");
 
 exports.loginCustomerService = async ({ email, password }) => {
-  const customer = await Customer.findOne({ email });
-  if (!customer) throw new Error("Customer not found");
+  const customerverify = await Customer.findOne({ email }).select("+password");
+  if (!customerverify) throw new Error("Customer not found");
 
-  const encryptedPassword = encryptData(password);
-  if (customer.password !== encryptedPassword) {
+  const decryptedPassword = decryptData(customerverify.password);
+  if (String(decryptedPassword) !== String(password)) {
     throw new Error("Invalid password");
   }
 
   const token = jwt.sign(
-    { id: customer._id, role: "Customer", email: customer.email },
-    process.env.JWT_SECRET || "digitalks_secret_key",
+    { id: customerverify._id, role: "Customer", email: customerverify.email },
+    process.env.JWT_SECRET_KEY || "digitalks_secret_key",
     { expiresIn: "7d" }
   );
 
+  const customer = customerverify.toObject();
+  delete customer.password;
+
   return { customer, token };
 };
+
+
 
 exports.deleteCustomerService = async (id) => {
   const customer = await Customer.findByIdAndDelete(id);

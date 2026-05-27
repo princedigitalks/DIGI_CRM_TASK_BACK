@@ -18,9 +18,10 @@ exports.createTask = async (req, res) => {
 
 exports.fetchAllTasks = async (req, res) => {
   try {
-    const tasks = await fetchAllTasksService(req.query);
+    const tasks = await fetchAllTasksService(req.query, req.user, req.role);
     return res.status(200).json({ status: "Success", data: tasks });
   } catch (error) {
+
     return res.status(500).json({ status: "Fail", message: error.message });
   }
 };

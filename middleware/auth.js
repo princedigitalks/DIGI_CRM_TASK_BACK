@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const STAFF = require("../model/staff");
+const CUSTOMER = require("../model/customer");
 
 async function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -8,12 +9,28 @@ async function authMiddleware(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const staffVerify = await STAFF.findById(decoded.id)
-    if (!staffVerify) {
+    const secretKey = process.env.JWT_SECRET_KEY || "digitalks_secret_key";
+    const decoded = jwt.verify(token, secretKey);
+
+    let userVerify;
+    if (decoded.role === "Customer") {
+      userVerify = await CUSTOMER.findById(decoded.id);
+      if (userVerify) {
+        req.user = userVerify;
+        req.role = "Customer";
+      }
+    } else {
+      userVerify = await STAFF.findById(decoded.id);
+      if (userVerify) {
+        req.user = userVerify;
+        req.role = decoded.role || "Staff"; // Use role from token or default to Staff
+      }
+    }
+
+    if (!userVerify) {
       return res.status(401).json({ status: "Fail", message: "Invalid token" });
     }
-    req.user = staffVerify;
+
     next();
   } catch (err) {
     res.status(401).json({ status: "Fail", message: "Invalid token" });
@@ -21,3 +38,4 @@ async function authMiddleware(req, res, next) {
 }
 
 module.exports = authMiddleware;
+

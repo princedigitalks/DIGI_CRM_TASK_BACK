@@ -7,20 +7,27 @@ exports.createProjectService = async (body) => {
   return project;
 };
 
-exports.fetchAllProjectsService = async ({ page, limit, search }) => {
+exports.fetchAllProjectsService = async ({ page, limit, search, user, role }) => {
   const skip = (page - 1) * limit;
-  const query = search
+  let query = search
     ? {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
-        ],
-      }
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ],
+    }
     : {};
+
+  // Data Isolation: If user is a customer, only show their projects
+  if (role === "Customer") {
+    query.customerId = user._id.toString();
+  }
+
   const total = await Project.countDocuments(query);
   const data = await Project.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
   return { total, data };
 };
+
 
 exports.fetchProjectByIdService = async (id) => {
   const project = await Project.findById(id);

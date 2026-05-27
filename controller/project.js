@@ -24,7 +24,10 @@ exports.getAllProjects = async (req, res) => {
       page: parseInt(page),
       limit: parseInt(limit),
       search,
+      user: req.user,
+      role: req.role,
     });
+
     res.status(200).json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

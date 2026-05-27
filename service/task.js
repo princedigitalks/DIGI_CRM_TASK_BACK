@@ -1,15 +1,24 @@
 const TASK = require("../model/task");
+const Project = require("../model/project");
 
 exports.createTaskService = async (body) => {
   const task = await TASK.create(body);
   return task;
 };
 
-exports.fetchAllTasksService = async (query = {}) => {
+exports.fetchAllTasksService = async (query = {}, user, role) => {
+  // Data Isolation: If user is a customer, only show tasks for their projects
+  if (role === "Customer") {
+    const customerProjects = await Project.find({ customerId: user._id.toString() }).select("_id");
+    const projectIds = customerProjects.map(p => p._id.toString());
+    query.projectId = { $in: projectIds };
+  }
+
   // Can filter by projectId, assigneeId, status etc
   const tasks = await TASK.find(query).sort({ order: 1, createdAt: -1 });
   return tasks;
 };
+
 
 exports.fetchTaskByIdService = async (id) => {
   const task = await TASK.findById(id);
@@ -30,7 +39,7 @@ exports.deleteTaskService = async (id) => {
 };
 
 exports.reorderTasksService = async (reorderedIds) => {
-  const updates = reorderedIds.map((id, index) => 
+  const updates = reorderedIds.map((id, index) =>
     TASK.findByIdAndUpdate(id, { order: index })
   );
   await Promise.all(updates);
